@@ -118,7 +118,6 @@ client.on("interactionCreate", async (interaction) => {
     }
     // Добавляем URL в очередь
     addToQueue(url);
-    console.log(queue);
     // Если в очереди только одна аудиозапись, начинаем воспроизведение
     if (initializedQueue) {
       sendQueueStatusToChannel("1142097436475658370");
