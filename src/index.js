@@ -166,6 +166,7 @@ client.on("interactionCreate", async (interaction) => {
         playNextAudio(connection);
         if (queue.length == 0) {
           sendQueueStatusToChannel("1142097436475658370");
+          audioPlayer.stop();
         }
         await interaction.reply("Skipped current audio.");
       } else {
@@ -201,7 +202,7 @@ client.on("interactionCreate", async (interaction) => {
         playlist.items.forEach((item) => {
           addToQueue(item.url);
         });
-        console.log(queue);
+
         if (queue.length > 1) {
           connection = joinVoiceChannel({
             channelId: voiceChannelId,
