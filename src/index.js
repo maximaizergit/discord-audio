@@ -162,7 +162,7 @@ client.on("interactionCreate", async (interaction) => {
   if (commandName === "skip") {
     // Пропустить текущую аудиозапись
     if (isPlaying) {
-      audioPlayer.stop();
+      queue.shift();
       playNextAudio(connection);
       if (queue.length == 0) {
         sendQueueStatusToChannel("1142097436475658370");
@@ -172,6 +172,17 @@ client.on("interactionCreate", async (interaction) => {
       await interaction.reply("No audio is playing.");
     }
   }
+  if (commandName === "reset") {
+    // Пропустить текущую аудиозапись
+
+    clearQueue();
+    playNextAudio(connection);
+    if (queue.length == 0) {
+      sendQueueStatusToChannel("1142097436475658370");
+    }
+    await interaction.reply("Reset comleted");
+  }
+
   if (commandName === "addplaylist") {
     const playlistUrl = options.getString("playlisturl");
     const voiceChannelId = interaction.member.voice.channelId;
@@ -187,7 +198,7 @@ client.on("interactionCreate", async (interaction) => {
 
       // Добавляем URL каждого видео из плейлиста в очередь
       playlist.items.forEach((item) => {
-        addToQueue(item.url);
+        addToQueue(item);
       });
       console.log(queue);
       if (queue.length > 1) {
@@ -273,6 +284,10 @@ async function main() {
     {
       name: "hui",
       description: "просто хуй",
+    },
+    {
+      name: "reset",
+      description: "Сброс воспроизводимых треков",
     },
     {
       name: "play",
