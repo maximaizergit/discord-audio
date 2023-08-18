@@ -198,7 +198,7 @@ client.on("interactionCreate", async (interaction) => {
 
       // Добавляем URL каждого видео из плейлиста в очередь
       playlist.items.forEach((item) => {
-        addToQueue(item);
+        addToQueue(item.url);
       });
       console.log(queue);
       if (queue.length > 1) {
@@ -241,8 +241,16 @@ async function playNextAudio(connection) {
 
     const url = queue[0];
     let video;
-
-    video = await playdl.stream(url);
+    if (isYouTubeLink(url)) {
+      video = await playdl.stream(url);
+    } else {
+      const statusChannel = await client.channels.fetch("1142097436475658370");
+      await statusChannel.send(`Wrong url`);
+      queue.shift();
+      sendQueueStatusToChannel("1142097436475658370");
+      playNextAudio(connection);
+      return;
+    }
 
     const audioResource = createAudioResource(video.stream, {
       inputType: StreamType.Opus,
@@ -366,7 +374,7 @@ async function sendQueueStatusToChannel(channelId) {
         const info = await playdl.video_basic_info(queue[i]);
         title = info.video_details.title;
       } else {
-        title = queue[i];
+        title = "wrong url";
       }
     }
     queueStatus.push(`${i + 1}. ${title}`);
