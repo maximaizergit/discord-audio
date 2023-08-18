@@ -92,134 +92,139 @@ async function listVoiceChannels() {
 }
 
 client.on("interactionCreate", async (interaction) => {
-  if (!interaction.isChatInputCommand()) return;
-  const { commandName, options } = interaction;
+  try {
+    if (!interaction.isChatInputCommand()) return;
+    const { commandName, options } = interaction;
 
-  if (commandName === "hui") {
-    interaction.reply("соси!");
-  }
-  if (commandName === "play") {
-    const url = options.getString("url");
-    if (isPlaylistUrl(url)) {
-      await interaction.reply("use /addplaylist command for playlist links");
-      return;
+    if (commandName === "hui") {
+      interaction.reply("соси!");
     }
-    // if (!isVideoValid(url)) {
-    // await interaction.reply("invalid link");
-    //  return;
-    //}
-    const voiceChannelId = interaction.member.voice.channelId;
+    if (commandName === "play") {
+      const url = options.getString("url");
+      if (isPlaylistUrl(url)) {
+        await interaction.reply("use /addplaylist command for playlist links");
+        return;
+      }
+      // if (!isVideoValid(url)) {
+      // await interaction.reply("invalid link");
+      //  return;
+      //}
+      const voiceChannelId = interaction.member.voice.channelId;
 
-    if (!voiceChannelId) {
-      await interaction.reply(
-        "You must be in a voice channel to use this command."
-      );
-      return;
-    }
-    // Добавляем URL в очередь
-    addToQueue(url);
-    // Если в очереди только одна аудиозапись, начинаем воспроизведение
-    if (initializedQueue) {
-      sendQueueStatusToChannel("1142097436475658370");
-    }
-    if (queue.length === 1) {
-      connection = joinVoiceChannel({
-        channelId: voiceChannelId,
-        guildId: GUILD_ID,
-        adapterCreator: interaction.guild.voiceAdapterCreator,
-      });
-
-      playNextAudio(connection);
-    }
-
-    interaction.reply("Added audio to the queue.");
-  }
-  if (commandName === "pause") {
-    // Приостановить воспроизведение
-    if (isPlaying) {
-      audioPlayer.pause();
-      await interaction.reply("Playback paused.");
-      isPaused = true;
-      sendQueueStatusToChannel("1142097436475658370");
-    } else {
-      await interaction.reply("No audio is playing.");
-    }
-  }
-
-  if (commandName === "resume") {
-    // Продолжить воспроизведение
-    if (isPlaying) {
-      audioPlayer.unpause();
-      await interaction.reply("Playback resumed.");
-      isPaused = false;
-      sendQueueStatusToChannel("1142097436475658370");
-    } else {
-      await interaction.reply("No audio is paused.");
-    }
-  }
-
-  if (commandName === "skip") {
-    // Пропустить текущую аудиозапись
-    if (isPlaying) {
-      queue.shift();
-      playNextAudio(connection);
-      if (queue.length == 0) {
+      if (!voiceChannelId) {
+        await interaction.reply(
+          "You must be in a voice channel to use this command."
+        );
+        return;
+      }
+      // Добавляем URL в очередь
+      addToQueue(url);
+      // Если в очереди только одна аудиозапись, начинаем воспроизведение
+      if (initializedQueue) {
         sendQueueStatusToChannel("1142097436475658370");
       }
-      await interaction.reply("Skipped current audio.");
-    } else {
-      await interaction.reply("No audio is playing.");
-    }
-  }
-  if (commandName === "reset") {
-    // Пропустить текущую аудиозапись
-
-    clearQueue();
-    playNextAudio(connection);
-    if (queue.length == 0) {
-      sendQueueStatusToChannel("1142097436475658370");
-    }
-    await interaction.reply("Reset comleted");
-  }
-
-  if (commandName === "addplaylist") {
-    const playlistUrl = options.getString("playlisturl");
-    const voiceChannelId = interaction.member.voice.channelId;
-
-    if (!voiceChannelId) {
-      await interaction.reply(
-        "You must be in a voice channel to use this command."
-      );
-      return;
-    }
-    try {
-      const playlist = await ytpl(playlistUrl);
-
-      // Добавляем URL каждого видео из плейлиста в очередь
-      playlist.items.forEach((item) => {
-        addToQueue(item.url);
-      });
-      console.log(queue);
-      if (queue.length > 1) {
+      if (queue.length === 1) {
         connection = joinVoiceChannel({
           channelId: voiceChannelId,
           guildId: GUILD_ID,
           adapterCreator: interaction.guild.voiceAdapterCreator,
         });
-      }
 
-      // Если бот не проигрывает ничего, начинаем воспроизведение первого видео
-      if (!isPlaying) {
         playNextAudio(connection);
       }
 
-      await interaction.reply(
-        `Added ${playlist.items.length} videos from the playlist to the queue.`
-      );
-    } catch (error) {
-      console.error("Error adding playlist:", error);
-      await interaction.reply("An error occurred while adding the playlist.");
+      interaction.reply("Added audio to the queue.");
     }
+    if (commandName === "pause") {
+      // Приостановить воспроизведение
+      if (isPlaying) {
+        audioPlayer.pause();
+        await interaction.reply("Playback paused.");
+        isPaused = true;
+        sendQueueStatusToChannel("1142097436475658370");
+      } else {
+        await interaction.reply("No audio is playing.");
+      }
+    }
+
+    if (commandName === "resume") {
+      // Продолжить воспроизведение
+      if (isPlaying) {
+        audioPlayer.unpause();
+        await interaction.reply("Playback resumed.");
+        isPaused = false;
+        sendQueueStatusToChannel("1142097436475658370");
+      } else {
+        await interaction.reply("No audio is paused.");
+      }
+    }
+
+    if (commandName === "skip") {
+      // Пропустить текущую аудиозапись
+      if (isPlaying) {
+        queue.shift();
+        playNextAudio(connection);
+        if (queue.length == 0) {
+          sendQueueStatusToChannel("1142097436475658370");
+        }
+        await interaction.reply("Skipped current audio.");
+      } else {
+        await interaction.reply("No audio is playing.");
+      }
+    }
+    if (commandName === "reset") {
+      // Пропустить текущую аудиозапись
+
+      clearQueue();
+      playNextAudio(connection);
+      audioPlayer.stop();
+      if (queue.length == 0) {
+        sendQueueStatusToChannel("1142097436475658370");
+      }
+      await interaction.reply("Reset comleted");
+    }
+
+    if (commandName === "addplaylist") {
+      const playlistUrl = options.getString("playlisturl");
+      const voiceChannelId = interaction.member.voice.channelId;
+
+      if (!voiceChannelId) {
+        await interaction.reply(
+          "You must be in a voice channel to use this command."
+        );
+        return;
+      }
+      try {
+        const playlist = await ytpl(playlistUrl);
+
+        // Добавляем URL каждого видео из плейлиста в очередь
+        playlist.items.forEach((item) => {
+          addToQueue(item.url);
+        });
+        console.log(queue);
+        if (queue.length > 1) {
+          connection = joinVoiceChannel({
+            channelId: voiceChannelId,
+            guildId: GUILD_ID,
+            adapterCreator: interaction.guild.voiceAdapterCreator,
+          });
+        }
+
+        // Если бот не проигрывает ничего, начинаем воспроизведение первого видео
+        if (!isPlaying) {
+          playNextAudio(connection);
+        }
+
+        await interaction.reply(
+          `Added ${playlist.items.length} videos from the playlist to the queue.`
+        );
+      } catch (error) {
+        console.error("Error adding playlist:", error);
+        await interaction.reply("An error occurred while adding the playlist.");
+      }
+    }
+  } catch (err) {
+    console.log("error:" + err);
   }
 });
 
@@ -235,6 +240,7 @@ async function isVideoValid(url) {
 async function playNextAudio(connection) {
   try {
     if (queue.length === 0) {
+      adudioPlayer.stop();
       return; // Очередь пуста, просто выходим
     }
 
