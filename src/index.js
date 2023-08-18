@@ -241,16 +241,8 @@ async function playNextAudio(connection) {
 
     const url = queue[0];
     let video;
-    if (isYouTubeLink(url)) {
-      video = await playdl.stream(url);
-    } else {
-      const statusChannel = await client.channels.fetch("1142097436475658370");
-      await statusChannel.send(`Wrong url`);
-      queue.shift();
-      sendQueueStatusToChannel("1142097436475658370");
-      playNextAudio(connection);
-      return;
-    }
+
+    video = await playdl.stream(url);
 
     const audioResource = createAudioResource(video.stream, {
       inputType: StreamType.Opus,
@@ -374,7 +366,7 @@ async function sendQueueStatusToChannel(channelId) {
         const info = await playdl.video_basic_info(queue[i]);
         title = info.video_details.title;
       } else {
-        title = "wrong url";
+        title = queue[i];
       }
     }
     queueStatus.push(`${i + 1}. ${title}`);
