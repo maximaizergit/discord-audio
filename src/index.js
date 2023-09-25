@@ -16,6 +16,8 @@ const url = require("url");
 const express = require("express");
 const dotenv = require("dotenv");
 const playdl = require("play-dl");
+const ytdl = require("ytdl-core");
+
 dotenv.config();
 
 const client = new Client({
@@ -26,7 +28,6 @@ const CLIENT_ID = "1140361276120383568";
 const GUILD_ID = "598932217246384129";
 client.login(TOKEN);
 const ytpl = require("ytpl");
-const ytdl = require("ytdl-core");
 
 const rest = new REST({ version: "10" }).setToken(TOKEN);
 
@@ -370,15 +371,15 @@ async function sendQueueStatusToChannel(channelId) {
     if (i === 0) {
       if (isYouTubeLink(queue[i])) {
         console.log("is yt " + isYouTubeLink(queue[i]));
-        const info = await playdl.video_basic_info(queue[i]);
-        title = `[${info.video_details.title}](${queue[i]})`;
+        const info = await ytdl.getInfo(queue[i]);
+        title = `[${info.videoDetails.title}](${queue[i]})`;
       } else {
         title = queue[i];
       }
     } else {
       if (isYouTubeLink(queue[i])) {
-        const info = await playdl.video_basic_info(queue[i]);
-        title = info.video_details.title;
+        const info = await ytdl.getInfo(queue[i]);
+        title = info.videoDetails.title;
       } else {
         title = "wrong url";
       }
